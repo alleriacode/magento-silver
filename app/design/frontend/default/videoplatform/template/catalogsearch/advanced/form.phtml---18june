@@ -1,0 +1,230 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2012 Magento Inc. (http://www.magentocommerce.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<?php
+/**
+ * Catalog advanced search form
+ *
+ * @see Mage_CatalogSearch_Block_Advanced_Form
+ */
+?>
+
+
+    
+<?php $maxQueryLength= $this->helper('catalogsearch')->getMaxQueryLength();?>
+
+<?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+<form action="<?php echo $this->getSearchPostUrl() ?>" method="get" id="form-validate">
+    <input type="hidden" value="<?php echo $this->getSearchPostUrl() ?>" id="action"/>
+    <input type="hidden" value="<?php echo Mage::getBaseUrl(); ?>" id="baseurl"/>
+    <div class="fieldset advanced-search">
+      <!--  <h2 class="legend"><?php echo $this->__('Search Settings') ?></h2> -->
+        <ul class="form-list" id="advanced-search-list" style="  background: none repeat scroll 0 0 #F0F0F0;float: left;height: 107px;padding: 15px 20px 20px;width: 96%;">
+            <?php foreach ($this->getSearchableAttributes() as $_attribute): ?>
+            <?php $_code = $_attribute->getAttributeCode() ?>
+         
+            <li style="width:200px;float:left;" id="<?php if($_code=='name'|| $_code=='news_to_date' || $_code=='news_from_date' ){ echo $_code; } ?>">
+                <label for="<?php echo $_code ?>"><?php echo $this->getAttributeLabel($_attribute) ?></label>
+             <?php 
+                switch($this->getAttributeInputType($_attribute)):
+                    case 'number': ?>
+                    <div class="input-range">
+                        <input type="text" name="<?php echo $_code ?>[from]" value="<?php echo $this->escapeHtml($this->getAttributeValue($_attribute, 'from')) ?>" id="<?php echo $_code ?>" title="<?php echo $this->escapeHtml($this->getAttributeLabel($_attribute)) ?>" class="input-text validate-number" maxlength="<?php echo $maxQueryLength;?>" />
+                        <span class="separator">-</span>
+                        <input type="text" name="<?php echo $_code ?>[to]" value="<?php echo $this->escapeHtml($this->getAttributeValue($_attribute, 'to')) ?>" id="<?php echo $_code ?>_to" title="<?php echo $this->escapeHtml($this->getAttributeLabel($_attribute)) ?>" class="input-text validate-number" maxlength="<?php echo $maxQueryLength;?>" />
+                    </div>
+                    <?php break;
+                    case 'price': ?>
+                   
+                   <div class="input-range">
+                              <div class="category-choose">
+                        <select class="choose" name="<?php echo $_code ?>[from]" value="<?php echo $this->escapeHtml($this->getAttributeValue($_attribute, 'from')) ?>" id="<?php echo $_code ?>" title="<?php echo $this->escapeHtml($this->getAttributeLabel($_attribute)) ?>" >
+                            <option class="optionvalue" value="--SELECT--">--SELECT--</option>
+                            <option class="optionvalue" value="0-50">0-50</option>
+                            <option class="optionvalue" value="51-100">51-100</option>
+                            <option class="optionvalue" value="101-300">101-300</option>
+                            <option class="optionvalue" value="301-500">301-500</option>
+                            <option class="optionvalue" value="500-UP">500-UP</option>
+                        </select>
+                              </div>
+                         </div> 
+                   <!-- <input name="<?php echo $_code ?>[from]" value="<?php echo $this->escapeHtml($this->getAttributeValue($_attribute, 'from')) ?>" id="<?php echo $_code ?>" title="<?php echo $this->escapeHtml($this->getAttributeLabel($_attribute)) ?>"  class="input-text validate-number" type="text" maxlength="<?php echo $maxQueryLength;?>" />
+                       <span class="separator">-</span>
+                        <input name="<?php echo $_code ?>[to]" value="<?php echo $this->escapeHtml($this->getAttributeValue($_attribute, 'to')) ?>" id="<?php echo $_code ?>_to" title="<?php echo $this->escapeHtml($this->getAttributeLabel($_attribute)) ?>"  class="input-text validate-number" type="text" maxlength="<?php echo $maxQueryLength;?>" />
+                        <small>(<?php echo $this->getCurrency($_attribute); ?>)</small> -->
+             
+                    <?php break;
+                 case 'select': 
+                if(in_array($_attribute->getAttributeCode(), array('member_list','video_category'))): ?>
+                    <div class="input-box">
+                        <?php
+                             $options = $_attribute->getSource()->getAllOptions(false); ?>
+                               <select id="<?php echo $_attribute->getAttributeCode(); ?>" name="<?php echo $_attribute->getAttributeCode(); ?>[]" class="choose">
+                                <option class="optionvalue" value="--SELECT--">--Select--</option>
+                           <?php  foreach($options as $_option):?>
+
+                            <option  class="optionvalue"  value="<?php echo $_option['value']; ?>"> <?php echo $_option['label']; ?> </option>
+
+                       <?php
+                             endforeach;
+                        ?>
+                            </select>
+                    </div>
+                
+                <?php endif; ?>
+   
+                    <!--   <div class="input-range">
+                                  <div class="category-choose">
+                            <?php  
+                            $str1 =str_replace('multiple', '', $this->getAttributeSelectElement($_attribute)) ;
+                                    $str2 = str_replace('multiselect', 'choose', $str1);
+                                  echo  $str3 = str_replace('4', '', $str2);
+                                    ?>
+                                  </div>
+                            </div>  -->
+                         
+                    <?php break;
+                    case 'yesno': ?>
+                        <?php echo $this->getAttributeYesNoElement($_attribute) ?>
+                    <?php break;
+                    case 'date': ?>
+                    <div class="input-range">
+                        <?php echo $this->getDateInput($_attribute, 'from') ?>
+                      <!--  <span class="separator">-</span>
+                        <?php echo $this->getDateInput($_attribute, 'to') ?> -->
+                    </div>
+                    <?php break;
+                    default: ?>
+                    <div class="input-box">
+                        <input type="text" name="<?php echo $_code ?>" id="<?php echo $_code ?>" value="<?php echo $this->escapeHtml($this->getAttributeValue($_attribute)) ?>" title="<?php echo $this->escapeHtml($this->getAttributeLabel($_attribute)) ?>"  class="input-text <?php echo $this->getAttributeValidationClass($_attribute) ?>" maxlength="<?php echo $maxQueryLength;?>" />
+                    </div>
+                <?php endswitch; ?>
+            
+            <?php endforeach; ?>
+            </li>
+                  
+            <div class="buttons-set" style="padding-top:35px;margin-right:-15px;">
+        <button style="width:125px;" type="button" title="<?php echo $this->__('Search') ?>" class="advance" onclick="searchproduct()"><span><span><?php echo $this->__('Advance Search') ?></span></span></button>
+    </div>
+      
+        </ul>
+        <script type="text/javascript">decorateList('advanced-search-list')</script>
+    </div>
+    
+</form>
+<script type="text/javascript">
+//<![CDATA[
+    var dataForm = new VarienForm('form-validate', true);
+//]]>
+</script>
+
+<script type="text/javascript">
+function searchproduct()
+{
+   // var newaction='';
+  // var data =document.getElementById('search').value;
+ var data=document.forms[1].elements[0].value;
+  var price1 =document.getElementById('price').value;
+ var member=document.getElementById('member_list').value;
+  var category=document.getElementById('video_category').value;
+ var date=document.getElementById('start_date').value;
+var original=price1.split("-"); 
+var price=original[0];
+var to=original[1];
+   // var price=document.forms[1].elements[3].value;
+  // var price=document.getElementById('price').value;
+  //  var member=document.forms[1].elements[6].value;
+  //  var category=document.forms[1].elements[7].value;
+  //  var date=document.forms[1].elements[8].value;
+
+    
+  
+   // var action =document.getElementById('action').value;
+ //   var baseurl=document.forms[1].elements[0].value;
+    
+  if(data.length==0 || data =='Search entire store here...')
+  {
+           if(category=='--SELECT--' && member=='--SELECT--' && price == '--SELECT--'&& date.length >0 )
+            {
+                document.location.href='http://54.228.195.42/magento/index.php/catalogsearch/advanced/result/?news_from_date[from]='+date+'&news_from_date[to]' ; 
+            }
+            if(category=='--SELECT--' && member=='--SELECT--' )
+            {
+                document.location.href='http://54.228.195.42/magento/index.php/catalogsearch/advanced/result/?price[from]='+price+'&price[to]='+to+'&news_from_date[from]='+date+'&news_from_date[to]' ; 
+            }
+           if(member!='--SELECT--' && price == '--SELECT--' && category=='--SELECT--')
+            {
+                document.location.href='http://54.228.195.42/magento/index.php/catalogsearch/advanced/result/?price[from]='+price+'&price[to]='+to+'&member_list[]='+member+'&news_from_date[from]='+date+'&news_from_date[to]' ; 
+
+            }
+            if(category=='--SELECT--' && member!='--SELECT--' && price != '--SELECT--'&& date.length >0)
+            {
+                 document.location.href='http://54.228.195.42/magento/index.php/catalogsearch/advanced/result/?price[from]='+price+'&price[to]='+to+'&member_list[]='+member+'&news_from_date[from]='+date+'&news_from_date[to]' ; 
+
+            }
+           if(category!='--SELECT--')
+            {
+                  document.location.href='http://54.228.195.42/magento/index.php/catalogsearch/advanced/result/?price[from]='+price+'&price[to]='+to+'&video_category[]='+category+'&news_from_date[from]='+date+'&news_from_date[to]' ; 
+            }
+            if(category !='--SELECT--' && member !='--SELECT--' && price !='--SELECT--')
+            {
+                 document.location.href='http://54.228.195.42/magento/index.php/catalogsearch/advanced/result/?price[from]='+price+'&price[to]='+to+'&member_list[]='+member+'&video_category[]='+category+'&news_from_date[from]='+date+'&news_from_date[to]' ; 
+            }
+            if(category=='--SELECT--' && member=='--SELECT--' && price != '--SELECT--'&& date.length == 0)
+            {
+                document.location.href='http://54.228.195.42/magento/index.php/catalogsearch/advanced/result/?price[from]='+price+'&price[to]='+to;
+            }
+            
+  }
+  else
+    {
+           if(category=='--SELECT--' && member=='--SELECT--' && price.length == '--SELECT--' && date.length ==0)
+            {
+                document.location.href='http://54.228.195.42/magento/index.php/catalogsearch/advanced/result/?name='+data;
+            }
+          if(category=='--SELECT--' && member=='--SELECT--' && price.length > 0 )
+            {
+                document.location.href='http://54.228.195.42/magento/index.php/catalogsearch/advanced/result/?name='+data+'&price[from]='+price+'&price[to]='+to+'&news_from_date[from]='+date+'&news_from_date[to]' ; 
+            }
+         if(category=='--SELECT--' && member!='--SELECT--' && price.length > 0 )
+            {
+                document.location.href='http://54.228.195.42/magento/index.php/catalogsearch/advanced/result/?name='+data+'&price[from]='+price+'&price[to]='+to+'&member_list[]='+member+'&news_from_date[from]='+date+'&news_from_date[to]' ; 
+            }
+            if(category!='--SELECT--' && member!='--SELECT--' && price.length > 0 )
+            {
+                document.location.href='http://54.228.195.42/magento/index.php/catalogsearch/advanced/result/?name='+data+'&price[from]='+price+'&price[to]='+to+'&member_list[]='+member+'&video_category[]='+category+'&news_from_date[from]='+date+'&news_from_date[to]' ; 
+            }
+             if(category!='--SELECT--' && member=='--SELECT--' && price.length > 0 )
+            {
+                document.location.href='http://54.228.195.42/magento/index.php/catalogsearch/advanced/result/?name='+data+'&price[from]='+price+'&price[to]='+to+'&video_category[]='+category+'&news_from_date[from]='+date+'&news_from_date[to]' ; 
+            }
+        
+       
+       
+       
+ }
+}
+</script>

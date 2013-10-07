@@ -1,0 +1,61 @@
+ <div class="page-title">
+        <h1>My Products</h1>
+    </div>
+<?php 
+$_helper = $this->helper('catalog/output');
+$customersession=Mage::getModel('customer/session')->getCustomer();
+$customerEmail=$customersession->getEmail();
+$adminmodel=Mage::getModel('admin/user')->getCollection()->getData();
+foreach($adminmodel as $admininfo)
+{
+    if($admininfo['email']==$customerEmail)
+    {
+       $expertname =$admininfo['username'];
+        break;
+    }
+}
+$productModel = Mage::getModel('catalog/product');
+$attr = $productModel->getResource()->getAttribute("member_list");
+if ($attr->usesSource()) {
+   $id = $attr->getSource()->getOptionId($expertname);  }
+$collection = Mage::getResourceModel('catalog/product_collection'); 
+$_product=$collection->getData();
+$attributes = Mage::getSingleton('catalog/config')
+                            ->getProductAttributes();
+$collection->addAttributeToSelect($attributes)
+                                    ->addStoreFilter();
+ $collection->addFieldToFilter(array(
+                            array('attribute'=>'member_list',array('eq'=>$id)),
+                            ));
+ $curencySymbol =  Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol(); 
+ 
+echo '<table  width="750">';
+echo '<th class="myproductth">Product Name </th><th class="myproductth">Product Type</th><th class="myproductth">Price</th><th colspan="2" class="myproductth">Action</th>';
+$count=1;
+ foreach ($collection as $_product):
+ 
+     if($count % 2 == 0)
+     {
+       $myproducttr='myproducttd' ; 
+     }
+     else
+     {
+           $myproducttr='myproductotr' ; 
+     }
+   $product= Mage::getModel('catalog/product')->load($_product->getId());
+    $attr1 = $product->getResource()->getAttribute("product_material");
+    if ($attr1->usesSource()) {
+         $productmaterial = $attr1->getSource()->getOptionText($product['product_material']);
+    }
+      echo '<tr class='.$myproducttr.'><td style="padding:5px;">'.$_product->getName().'</td>';
+      echo '<td style="padding:5px;">'.$productmaterial.'</td>';
+      echo '<td style="padding:5px;">'.$curencySymbol.number_format($_product->getPrice(),2).'</td>';
+      echo '<td style="padding:5px;"><a href="'.Mage::getBaseUrl().'createproduct/index/edit?id='.$_product->getEntityId().'"><img src="'.$this->getSkinUrl('images/user_edit.png').'"/></a></td>';
+       echo '<td style="padding:5px;"><a href="'.Mage::getBaseUrl().'createproduct/index/delete?id='.$_product->getEntityId().'"><img src="'.$this->getSkinUrl('images/btn_trash.gif').'"/></a></td></tr>';
+      $count++;
+endforeach;
+echo '</table>';
+ 
+?>
+
+

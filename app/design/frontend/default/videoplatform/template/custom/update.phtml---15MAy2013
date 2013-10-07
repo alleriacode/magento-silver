@@ -1,0 +1,262 @@
+<?php
+$productId=$_GET['id'];
+$productdata=Mage::getModel('catalog/product')->load($productId);
+$downloadablelink = Mage::getModel('downloadable/link')->getCollection()->addProductToFilter($productId);
+foreach ($downloadablelink as $downloadable):
+    $sampleurl= $downloadable['sample_url'];
+    $linkurl= $downloadable['link_url'];
+endforeach;
+$productmaterial=$productdata->getProductMaterial();
+  
+$customersession=Mage::getModel('customer/session')->getCustomer();
+$email=$customersession->getEmail();
+$adminmodel=Mage::getModel('admin/user')->getCollection()->getData();
+foreach($adminmodel as $admininfo):
+    if($admininfo['email']==$email)
+    {
+        $adminusername=$admininfo['username'];
+        break;
+    }
+endforeach;
+
+$attribute = Mage::getSingleton('eav/config')->getAttribute('catalog_product', 'member_list ');
+if ($attribute->usesSource()):
+$options = $attribute->getSource()->getAllOptions(false);
+endif;
+foreach($options as $optiondata): 
+    if($optiondata['label']==$adminusername):
+        $productexpertname=$optiondata['value'];
+    endif;
+endforeach; 
+//echo "<pre>";print_r($productdata);die('heklo');
+?>
+    <div class="page-title">
+        <h1>Edit Product</h1>
+    </div>
+        <form id="productupdateideo" name="productupdateideo" method="post" enctype="multipart/form-data" action="<?php echo $this->getUrl()?>createproduct/index/update" />
+         <input type="hidden" value="<?php echo $productId; ?>" name="prodId" />
+         <input type="hidden" value="<?php echo $productexpertname ; ?>" name="productexpertname" />
+        <div class="fieldset">
+           
+            <ul class="form-list">
+                <li class="fields">
+                      <div class="field name">
+                             <label class="required" for="firstname"><em> </em>Product Name</label>
+                                 <div class="input-box">
+                                     <input type="text" class="input-text required-entry" title="Product Name" value="<?php echo $productdata->getName() ?>" name="productname" id="productname"/>
+                                 </div>
+                        </div>
+                 </li>
+                 <li class="fields">
+                  <div class="field name">
+                        <label class="required" for="description"><em> </em>Description</label>
+                        <textarea class="input-text required-entry" name="description" style="height:50px; width:400px;"><?php echo $productdata->getDescription() ?></textarea>
+                    </div>
+                 </li>
+                 <li class="fields">
+                     <div class="field name">
+                        <label class="required" for="shortdescription"><em> </em>Short Description</label>
+                        <textarea class="input-text required-entry" name="shortdescription"style="height:50px; width:400px;"><?php echo $productdata->getShortDescription() ?></textarea>
+                    </div>
+                 </li>
+                
+                 <li class="fields">
+                      <div class="field name">
+                             <label class="required" for="price"><em> </em>Price</label>
+                                 <div class="input-box">
+                                     <?php $curencySymbol =  Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol(); ?>
+                                     <input type="text" class="input-text required-entry" title="Product price" value="<?php echo number_format($productdata->getPrice(),2); ?>" name="productprice" id="productprice"/>
+                                 </div>
+                        </div>
+                 </li>
+                 <li class="fields">
+                      <div class="field name">
+                             <label class="required" for="specialprice"><em> </em>Special Price</label>
+                                 <div class="input-box">
+                                     <input type="text" class="input-text required-entry" title="Product Specialprice" value="<?php echo number_format($productdata->getSpecialPrice(),2); ?>" name="specialprice" id="specialprice"/>
+                                 </div>
+                        </div>
+                 </li>
+                 <!--<li class="fields">
+                      <div class="field name">
+                             <label class="required" for="qty"><em> </em>Qty</label>
+                                 <div class="input-box">
+                                     <input type="text" class="input-text required-entry" width="30" title="Product Specialprice" value="<?php echo (int) Mage::getModel('cataloginventory/stock_item')->loadByProduct($productId)->getQty() ?>" name="qty" id="qty"/>
+                                 </div>
+                        </div>
+                 </li> -->
+                 <li class="fields">
+                      <div class="field name">
+                             <label style="width:500px;" class="required" for="category"><em> </em>Product Category</label>
+                                  <div class="category-choose">
+                                     <?php $_helper = Mage::helper('catalog/category') ?>
+                                        <?php $_categories = $_helper->getStoreCategories() ?>
+                                        <?php if (count($_categories) > 0): ?>
+                                         <select class="validate-select" name="productcategory" >  <option value="" selected="selected">Please select an option.</option>
+                                        <?php foreach($_categories as $_category): 
+                                            $catid=$_category->getId();  ?>
+                                             <option <?php if(in_array($_category->getId(), $productdata->getCategoryIds())) { echo "selected='selected'"; } ?> value="<?php echo $_category->getId() ?>"><?php echo $_category->getName() ?></option>
+                                        <?php endforeach; ?>
+                                            </select>
+                                       <?php endif; ?>
+                                 </div>
+                         </div>
+                 </li>
+                 <li class="fields">
+                      <div class="field name">
+                             <label style="width:500px;" class="required" for="Downloadable Option"><em> </em>Downloadable Option</label>
+                                  <div class="category-choose">
+                                     <select name="downloadableoption" class="validate-select">  <option value="" selected="selected">Please select an option.</option>
+                                      <?php $attribute = Mage::getSingleton('eav/config')->getAttribute('catalog_product', 'downloadable_option ');
+                                            if ($attribute->usesSource()):
+                                                $options = $attribute->getSource()->getAllOptions(false);
+                                            endif;
+                                            foreach($options as $optiondata): ?>
+                                                <option <?php if($optiondata['value']==$productdata->getDownloadableOption()) { echo "selected='selected'"; } ?> value="<?php echo $optiondata['value']; ?>"><?php echo $optiondata['label']; ?></option>
+                                <?php endforeach; ?>
+                        
+                                      </select>
+                                  </div>   
+                        </div>
+                 </li>
+                 <li class="fields">
+                      <div class="field name">
+                             <label style="width:500px;" class="required" for="Product Material"><em> </em>Product Material</label>
+                                  <div class="category-choose">
+                                     <select class="validate-select" name="productmaterial">  <option value="" selected="selected">Please select an option.</option>
+                                      <?php $attribute = Mage::getSingleton('eav/config')->getAttribute('catalog_product', 'product_material ');
+                                            if ($attribute->usesSource()):
+                                                $options = $attribute->getSource()->getAllOptions(false);
+                                            endif;
+                                            foreach($options as $optiondata): ?>
+                                                <option <?php if($optiondata['value']==$productdata->getProductMaterial()) { echo "selected='selected'"; } ?> value="<?php echo $optiondata['value']; ?>"><?php echo $optiondata['label']; ?></option>
+                                <?php endforeach; ?>
+                        
+                                      </select>
+                                  </div>          
+                      </div>
+                 </li>
+               
+                 
+                 <li class="fields">
+                      <div class="field name">
+                             <label style="width:500px;" class="required" for="specialproduct"><em> </em>Special Product</label>
+                                  <div class="category-choose">
+                                     <select class="validate-select" name="specialproduct">
+                                           <option value="" selected="selected">Please select an option.</option>
+                                         
+                                      <?php $attribute = Mage::getSingleton('eav/config')->getAttribute('catalog_product', 'special_product ');
+                                            if ($attribute->usesSource()):
+                                                $options = $attribute->getSource()->getAllOptions(false);
+                                            endif;
+                                            foreach($options as $optiondata): ?>
+                                                <option <?php if($optiondata['value']==$productdata->getSpecialProduct()) { echo "selected='selected'"; } ?> value="<?php echo $optiondata['value']; ?>"><?php echo $optiondata['label']; ?></option>
+                                <?php endforeach; ?>
+                        
+                                      </select>
+                                  </div> 
+                        </div>
+                 </li>
+                 <?php if($productmaterial == 7 ) { ?>
+                 <li class="fields">
+                      <div class="entry-edit">
+                            <div class="entry-edit-head">
+                                <h4 class="icon-head head-edit-form fieldset-legend"><?php echo 'Upload Video On You Tube';?></h4>
+                            </div>
+                            <fieldset id="grop_fields">
+                        <div style="">
+                         <div style="display:none;">   <?php  echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB).'youtube/index.php'?></div>
+                                <iframe src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB).'youtube/index.php'?>" width="960" height="230" style="border:none;">
+                                </iframe>
+                        </div>
+                                </fieldset>
+                        </div>
+                 </li>
+                  <li class="fields">
+                      <div class="field name">
+                             <label class="required" for="specialprice"><em> </em>Add Sample Url</label>
+                                 <div class="input-box">
+                                     <input type="text" class="input-text required-entry" title="Product Sampleurl" value="<?php echo $sampleurl; ?>" name="sampleurl" id="sampleurl"/>
+                                 </div>
+                        </div>
+                 </li>
+                 <?php } ?>
+                 
+                  <?php if($productmaterial == 7 || $productmaterial == 8 || $productmaterial == 9 || $productmaterial == 10 ) { ?>
+                 <li>
+                 <div class="entry-edit-head">
+                        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo 'Upload Video On S3 Amazon';?></h4>
+                    </div>
+                    <fieldset id="grop_fields">
+                        <div>
+                                <iframe src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB).'s3/index.php'?>"  width="960px" height="100" style="border:none;">
+                                </iframe>
+                        </div>
+                    </fieldset>
+                 </li>
+                 <li class="fields">
+                      <div class="field name">
+                             <label class="required" for="Product LinkUrl"><em> </em>Add Link Url</label>
+                                 <div class="input-box">
+                                     <input type="text" class="input-text required-entry" title="Product LinkUrl" value="<?php echo $linkurl; ?>" name="linkurl" id="linkurl"/>
+                                 </div>
+                        </div>
+                 </li>
+                 <?php } ?>
+                 
+                  <?php if($productmaterial == 60 ){ ?>
+                    <li class="fields">
+                  <div class="field name">
+                        <label class="required" for="livestreaming"><em> </em>Live Streaming</label>
+                        <textarea  class="input-text required-entry" style="height:50px; width:400px;" name="livestreaming"><?php echo $productdata->getLiveStreaming(); ?></textarea>
+                    </div>
+                 </li>
+                 <li class="fields">
+                     <div class="field name">
+                        <label class="required" for="socialstreaming"><em> </em>Social Streaming</label>
+                        <textarea class="input-text required-entry" name="socialstreaming" style="height:50px; width:400px;"><?php echo $productdata->getSocialStreaming(); ?></textarea>
+                    </div>
+                 </li>
+                 <li class="fields">
+                  <div class="field name">
+                        <label class="required" for="startdate"><em> </em>Start Date</label>
+                        <input type="text" class="input-text required-entry" title="startdate" value="" name="startdate" id="startdate"/>
+                    </div>
+                 </li>
+                 <li class="fields">
+                     <div class="field name">
+                        <label class="required" for="enddate"><em> </em>End Date</label>
+                       <input type="text" class="input-text required-entry" title="enddate" value="" name="enddate" id="enddate"/>
+                    </div>
+                 </li>
+                 <li class="fields">
+                  <div class="field name">
+                        <label class="required" for="venue"><em> </em>Venue</label>
+                        <input type="text" class="input-text required-entry" title="venue" value="" name="venue" id="venue"/>
+                    </div>
+                 </li>
+                
+                  <li class="fields">
+                     <div class="field name">
+                        <label class="required" for="content"><em> </em>prefix</label>
+                       <input type="text" class="input-text required-entry" title="content" value="" name="urlprefix" id="content"/>
+                    </div>
+                 </li>
+                 <?php } ?>
+                 <li class="fields">
+                      <div class="field name">
+                             <label class="required" for="Product Image"><em> </em>Product Image</label>
+                                 <div class="input-box">
+                                     <input type="file" name="file" class="input-text" title="Product Image" value=""  id="productimage"/>
+                                 </div>
+                        </div>
+                 </li>
+                 
+                 
+        </ul>
+    </div>
+    
+   <div class="buttons-set">
+        <button style="padding:5px;color:#FFFFFF;background:#333333;width:100px;"class="button" title="Submit" type="submit" ><span><span>Submit</span></span></button>
+   </div>
+</form>

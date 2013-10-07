@@ -1,0 +1,45 @@
+<?php 
+$expertmodel = Mage::getModel('brst_experts/amount');
+$customer=Mage::getModel('customer/session')->getCustomer();
+$customeremail=$customer->getEmail();
+$adminmodel=Mage::getModel('admin/user')->getCollection()->getData();
+foreach($adminmodel as $admindata)
+{
+    if($customeremail==$admindata['email'])
+    {
+        $expertname=$admindata['username'];
+    }
+}
+
+$resource = Mage::getSingleton('core/resource');
+$connection= $resource->getConnection('core_read');			
+$query="select * from brst_experts_amount where expert_name='$expertname'";
+$result=$connection->query($query);
+$collection = $result->fetchAll(); 
+echo '<table  width="750">';
+echo '<th class="myproductth">Affiliate Name</th><th class="myproductth">Url of affiliate</th><th class="myproductth">Actual product cost</th><th class="myproductth">Affiliate earning</th><th class="myproductth">% Of affiliate earning</th><th class="myproductth">Expert earning </th>';
+$count=1;
+ foreach ($collection as $record):
+ 
+     if($count % 2 == 0)
+     {
+       $myproducttr='myproducttd' ; 
+     }
+     else
+     {
+           $myproducttr='myproductotr' ; 
+     }
+    $curencySymbol =  Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol(); 
+      echo '<tr class='.$myproducttr.'><td style="padding:5px;">'.$record['affiliate_name'].'</td>';
+      echo '<td style="padding:5px;">'.$record['tax'].'</td>';
+      echo '<td style="padding:5px;">'.$curencySymbol.number_format($record['gross_price'],2).'</td>';
+       echo '<td style="padding:5px;">'.$record['affiliate_pay'].'</td>';
+       $orignalprice=number_format($record['gross_price'],0);
+        $percent=($record['affiliate_pay']/$orignalprice)*100;
+        echo '<td style="padding:5px;">'.$percent.'</td>';
+         echo '<td style="padding:5px;">'.$record['getyoupaid'].'</td></tr>';
+      
+      $count++;
+endforeach;
+echo '</table>';
+?>

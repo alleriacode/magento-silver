@@ -1,0 +1,43 @@
+ <div class="page-title">
+        <h1>My Products</h1>
+    </div>
+<?php 
+$_helper = $this->helper('catalog/output');
+$customersession=Mage::getModel('customer/session')->getCustomer();
+$customerEmail=$customersession->getEmail();
+$adminmodel=Mage::getModel('admin/user')->getCollection()->getData();
+foreach($adminmodel as $admininfo)
+{
+    if($admininfo['email']==$customerEmail)
+    {
+       $expertname =$admininfo['username'];
+        break;
+    }
+}
+$productModel = Mage::getModel('catalog/product');
+$attr = $productModel->getResource()->getAttribute("member_list");
+if ($attr->usesSource()) {
+    $id = $attr->getSource()->getOptionId($expertname); 
+    
+    }
+ $collection = Mage::getResourceModel('catalog/product_collection'); 
+  $_product=$collection->getData();
+ $attributes = Mage::getSingleton('catalog/config')
+                            ->getProductAttributes();
+$collection->addAttributeToSelect($attributes)
+                                    ->addStoreFilter();
+ $collection->addFieldToFilter(array(
+                            array('attribute'=>'member_list',array('eq'=>$id)),
+                            ));
+ $curencySymbol =  Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol(); 
+echo '<table border="1" width="750">';
+echo '<th>Product Name </th><th>Price</th><th>Action</th>';
+ foreach ($collection as $_product):
+      echo '<tr><td>'.$_product->getName().'</td>';
+      echo '<td>'.$curencySymbol.number_format($_product->getPrice(),2).'</td>';
+      echo '<td><a href="'.Mage::getBaseUrl().'createproduct/index/edit?id='.$_product->getEntityId().'">Edit</a></td></tr>';
+endforeach;
+echo '</table>';
+?>
+
+

@@ -1,0 +1,370 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2012 Magento Inc. (http://www.magentocommerce.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+
+<script type="text/javascript">
+
+jQuery("#csvxml").submit(function()
+{
+ alert('button clicked');
+}
+);
+
+function setcookie(cName,cValue) 
+{ 
+  document.cookie=cName+"=" + cValue;
+}
+function filteraffiliate(val)
+{
+    if(val!= "--SELECT--")
+        {
+            var url= document.getElementById('urldata').value;
+            document.location.href = url+"allmembers/index/earnings/name/"+val;
+        }
+        else
+            {
+                var url= document.getElementById('urldata').value;
+                document.location.href = url+"allmembers/index/earnings/";
+            }
+}
+function filterdate(val)
+{
+      if(val!= "--SELECT--")
+        {
+        var url= document.getElementById('urldata').value;
+         document.location.href = url+"allmembers/index/earnings/value/"+val;
+        }
+          else
+            {
+                var url= document.getElementById('urldata').value;
+                document.location.href = url+"allmembers/index/earnings/";
+            }
+}
+</script>
+<div class="limiter" style="float:right;width:190px;">
+             <label>Affiliate Name</label>
+          <div class="" style="border: 2px solid #999999; margin-right:10px;float: right;height:24px;overflow: hidden;width: 75px;background-image:url('<?php echo $this->getSkinUrl("images/bgarrow.png") ?>');  background-repeat: no-repeat;background-position:right center">
+              <?php $url = Mage::getBaseUrl(); ?>
+              <input type="hidden" value="<?php echo $url?>" name="urldata" id="urldata"/>
+                 <select style="width:95px;height:25px;" onchange="filteraffiliate(this.value)">
+                      <option value="--SELECT--" > --Select-- </option>
+                     <?php  foreach ($collection1 as $record){ 
+                                if($record['affiliate_name']!=$affname)
+                                {
+                         ?>
+                                  <option <?php if($affiliatename == $record['affiliate_name']){ echo 'selected=selected'; } ?> value="<?php echo $record['affiliate_name'] ?>" > <?php echo $record['affiliate_name'] ?> </option>
+               <?php } $affname=$record['affiliate_name']; }?>
+             </select>
+          </div>
+         </div>
+        <div class="limiter" style="float:left;width:190px;margin-bottom:10px;">
+             <label>Filter By Date</label>
+          <div class="" style="border: 2px solid #999999; margin-right:10px;float: right;height:24px;overflow: hidden;width: 75px;background-image:url('<?php echo $this->getSkinUrl("images/bgarrow.png") ?>');  background-repeat: no-repeat;background-position:right center">
+              <?php $url = Mage::getBaseUrl(); ?>
+              
+                 <select style="width:95px;height:25px;" onchange="filterdate(this.value)">
+                      <option value="--SELECT--" > --Select-- </option>
+                     <?php  for($i=1970;$i<=date('Y');$i++){  ?>
+                       <option <?php if($value == $i){ echo 'selected=selected'; } ?> value="<?php echo $i ?>" > <?php echo $i ?> </option>
+               <?php }?>
+             </select>
+          </div>
+         </div>
+<?php 
+       
+$currentPage = (int) $this->getRequest()->getParam('p', 1);
+$cookiedata=explode('=',$_COOKIE["expertpagelength"]);
+
+
+if( Mage::helper('core/url')->getCurrentUrl() == Mage::getBaseUrl().'allmembers/index/earnings/' || Mage::helper('core/url')->getCurrentUrl() == Mage::getBaseUrl().'allmembers/index/earnings' )
+{
+   setcookie('expertpagelength', '', -3600);
+   unset($_COOKIE["expertpagelength"]);
+
+   $pageSize = (int) $this->getRequest()->getParam('s',9);
+}
+else {
+     if($cookiedata[1]!= NULL)
+     {
+        $pageSize = (int) $this->getRequest()->getParam('s',$cookiedata[1]);
+     }
+     else
+     {
+       $pageSize = (int) $this->getRequest()->getParam('s',9);
+     }
+}
+$expertmodel = Mage::getModel('brst_experts/amount');
+$customer=Mage::getModel('customer/session')->getCustomer();
+$customeremail=$customer->getEmail();
+$adminmodel=Mage::getModel('admin/user')->getCollection()->getData();
+foreach($adminmodel as $admindata)
+{
+    if($customeremail==$admindata['email'])
+    {
+        $expertname=$admindata['username'];
+    }
+}
+
+
+$affiliatename=$this->getRequest()->getParam('name');
+$value=$this->getRequest()->getParam('value');
+if($affiliatename!=NULL)
+{
+    $collection = Mage::getModel('brst_experts/amount')->getCollection()
+    ->addFieldToFilter('affiliate_name', array('like'=>$affiliatename))
+    ->addFieldToFilter('expert_name', array('like'=>$expertname));
+    $collection->setPageSize($pageSize);
+}
+elseif($value!=NULL)
+{
+    $collection = Mage::getModel('brst_experts/amount')->getCollection()
+    ->addFieldToFilter('created_at', array('like'=>'%'.$value))
+    ->addFieldToFilter('expert_name', array('like'=>$expertname));
+        $collection->setPageSize($pageSize);
+
+}
+else{
+    $collection = Mage::getModel('brst_experts/amount')->getCollection()->addFieldToFilter('expert_name', array('like'=>$expertname));   
+    $collection->setPageSize($pageSize);
+}
+
+$collection1 = Mage::getModel('brst_experts/amount')->getCollection()->addFieldToFilter('expert_name', array('like'=>$expertname));   
+           
+$totCat = $collection->getSize();
+$store_cats = $collection->load();
+$pageTot = ceil( $totCat / $pageSize );
+$pageSize1=array('9','15','30',All);
+
+$firstproduct=1;
+$from=($firstproduct*$pageSize)+1;
+$to=$pageSize+$pageSize;
+
+$_helper = $this->helper('catalog/output');
+?>
+<form id="csvxml" method="post" style="float:left;margin-left:45px;" action="<?php echo Mage::getBaseUrl().'allmembers/index/exportcsv'?>">
+<div class="export a-right">
+    <input type="hidden" name="affiliatename" id="affiliatename" value="<?php echo $affiliatename; ?>"/>
+    <input type="hidden" name="datevalue" id="datevalue" value="<?php echo $value; ?>"/>
+    <input type="hidden" name="collectionsize" id="collectionsize" value="<?php echo count($collection); ?>"/>
+     <img src="http://54.228.195.42/magento/skin/adminhtml/default/default/images/icon_export.gif" alt="" class="v-middle">&nbsp; Export to:            
+     <select name="earning_export" id="earning_export" style="width:8em;">
+              <option value="csv">CSV</option>
+               <option value="excelxml">Excel XML</option>
+       </select>
+ <button style="padding:3px 5px 3px 5px;color:#FFFFFF;background:#333333;width:80px;border:none;" id="button" title="Export" type="submit" class="scalable task"  style=""><span><span><span>Export</span></span></span></button>   
+</div>
+</form>
+
+<div   style="margin-bottom:10px;clear:both" class="cattoolbar">
+    <div class="toolbar">
+    <div class="pager">
+         <p class="amount" style="padding-top:5px;padding-right:5px;">
+            <?php if($pageTot > 1): if($currentPage!= 1){?>
+                    <?php echo $this->__('Items '. $from.' to '.$to.' of '.$totCat.' total ') ?>
+             <?php } else { ?>
+                       <?php echo $this->__('Items '. $currentPage.' to '. $pageSize. ' of '.$totCat.' total ') ?>
+             <?php } ?>
+            <?php else: ?>
+                <strong><?php echo $this->__('Total Items '.$totCat) ?></strong>
+            <?php endif; ?>
+        </p>
+         
+        <div class="limiter">
+            <label>Show</label>
+             <span style="margin-top: 5px; float: right;">per page</span>
+            <div class="toolbarimg">
+                <select onchange="setcookie('expertpagelength',this.value);setLocation(this.value);">
+                        <?php foreach($pageSize1 as $key=>$limit) { ?>  
+                             <option <?php if($_COOKIE["expertpagelength"]== Mage::getBaseUrl().'allmembers/index/earnings?s='.$limit) { echo 'selected=selected'; }?> value="<?php echo Mage::getBaseUrl().'allmembers/index/earnings?s='.$limit  ?>" > <?php echo $limit;?> </option>
+                    <?php } ?>
+               </select>
+            </div>
+        </div>
+        
+        
+    <div class="pages">
+        <strong></strong>
+        <ol>
+             <?php if ($currentPage != '1'): ?>
+            <li>
+                <a class="previous<?php  ?> <?php?>" href="<?php //echo $current_cat->getUrl() ?>?p=<?php echo $currentPage-1 ?>" title="<?php echo $this->__('Previous') ?>">
+                  <img src="<?php echo $this->getSkinUrl('images/pager_arrow_left.gif') ?>" alt="<?php echo $this->__('Previous') ?>" class="v-middle" />
+                </a>
+            </li>
+        <?php endif;?>
+            <?php if($pageTot>1) {?>
+         <?php for ( $i=1; $i<=$pageTot; $i++ ) : ?>
+                <?php if ( $i == $currentPage ) : ?>
+                    <li class="current"><?php echo $i ?></li>
+                    <?php else : ?>
+                    <li><a href="<?php //echo $current_cat->getUrl() ?>?p=<?php echo $i ?>" ><?php echo $i ?></a></li>
+                    <?php endif; ?>
+            <?php endfor; ?>
+                    <?php } ?>
+                     <?php if ($currentPage < $pageTot): ?>
+              
+            <li>
+                <a class="previous<?php  ?> <?php?>" href="<?php //echo $current_cat->getUrl() ?>?p=<?php echo $currentPage+1 ?>" title="<?php echo $this->__('Previous') ?>">
+                  <img src="<?php echo $this->getSkinUrl('images/pager_arrow_right.gif') ?>" alt="<?php echo $this->__('Previous') ?>" class="v-middle" />
+                </a>
+            </li>
+        <?php endif;?>
+           
+        </ol>
+
+    </div>
+    </div>
+</div>
+</div>
+
+<?php 
+
+echo '<table  width="750">';
+echo '<th class="myproductth">Order ID</th><th class="myproductth">Affiliate Name</th><th class="myproductth">Url of affiliate</th><th class="myproductth">Actual product cost</th><th class="myproductth">Affiliate earning</th><th class="myproductth">% Of affiliate earning</th><th class="myproductth">Expert earning </th>';
+$count=1;
+if($collection->getSize() >0 ) 
+{
+ foreach ($collection as $record):
+ 
+     if($count % 2 == 0)
+     {
+       $myproducttr='myproducttd' ; 
+     }
+     else
+     {
+           $myproducttr='myproductotr' ; 
+     }
+    $curencySymbol =  Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol(); 
+     echo '<tr class='.$myproducttr.'><td style="padding:5px;">'.$record['order_id'].'</td>';
+      echo '<td style="padding:5px;">'.$record['affiliate_name'].'</td>';
+      echo '<td style="padding:5px;">'.$record['tax'].'</td>';
+      echo '<td style="padding:5px;">'.$curencySymbol.number_format($record['gross_price'],2).'</td>';
+       echo '<td style="padding:5px;">'.$record['affiliate_pay'].'</td>';
+       $orignalprice=number_format($record['gross_price'],0);
+        $percent=($record['affiliate_pay']/$orignalprice)*100;
+        echo '<td style="padding:5px;">'.$percent.'</td>';
+         echo '<td style="padding:5px;">'.$record['getyoupaid'].'</td></tr>';
+      
+      $count++;
+      
+endforeach;
+}
+ else 
+ {
+   echo '<tr class='.$myproducttr.'><td colspan="7" style="padding:5px;text-align:center">No Result Found</td>';
+}
+echo '</table>';
+
+?>
+
+<div style="margin-top:10px;"  class="cattoolbar">
+    <div class="toolbar">
+    <div class="pager">
+         <p class="amount" style="padding-top:5px;padding-right:5px;">
+            <?php if($pageTot > 1): if($currentPage!= 1){?>
+                    <?php echo $this->__('Items '. $from.' to '.$to.' of '.$totCat.' total ') ?>
+             <?php } else { ?>
+                       <?php echo $this->__('Items '. $currentPage.' to '. $pageSize. ' of '.$totCat.' total ') ?>
+             <?php } ?>
+            <?php else: ?>
+                <strong><?php echo $this->__('Total Items '.$totCat) ?></strong>
+            <?php endif; ?>
+        </p>
+        <div class="limiter">
+            <label>Show</label>
+             <span style="margin-top: 5px; float: right;">per page</span>
+            <div class="toolbarimg">
+                <select onchange="setcookie('expertpagelength',this.value);setLocation(this.value);">
+                        <?php foreach($pageSize1 as $key=>$limit) { ?>  
+                             <option <?php if($_COOKIE["expertpagelength"]== Mage::getBaseUrl().'allmembers/index/earnings?s='.$limit) { echo 'selected=selected'; }?> value="<?php echo Mage::getBaseUrl().'allmembers/index/earnings?s='.$limit  ?>" > <?php echo $limit;?> </option>
+                    <?php } ?>
+               </select>
+            </div>
+        </div>
+          
+       
+    <div class="pages">
+        <strong></strong>
+        <ol>
+             <?php if ($currentPage != '1'): ?>
+            <li>
+                <a class="previous<?php  ?> <?php?>" href="<?php //echo $current_cat->getUrl() ?>?p=<?php echo $currentPage-1 ?>" title="<?php echo $this->__('Previous') ?>">
+                  <img src="<?php echo $this->getSkinUrl('images/pager_arrow_left.gif') ?>" alt="<?php echo $this->__('Previous') ?>" class="v-middle" />
+                </a>
+            </li>
+        <?php endif;?>
+               <?php if($pageTot>1) {?>
+         <?php for ( $i=1; $i<=$pageTot; $i++ ) : ?>
+                <?php if ( $i == $currentPage ) : ?>
+                    <li class="current"><?php echo $i ?></li>
+                    <?php else : ?>
+                    <li><a href="<?php //echo $current_cat->getUrl() ?>?p=<?php echo $i ?>" ><?php echo $i ?></a></li>
+                    <?php endif; ?>
+            <?php endfor; ?>
+                    <?php } ?>
+                     <?php if ($currentPage < $pageTot): ?>
+            <li>
+                <a class="previous<?php  ?> <?php?>" href="<?php //echo $current_cat->getUrl() ?>?p=<?php echo $currentPage+1 ?>" title="<?php echo $this->__('Previous') ?>">
+                  <img src="<?php echo $this->getSkinUrl('images/pager_arrow_right.gif') ?>" alt="<?php echo $this->__('Previous') ?>" class="v-middle" />
+                </a>
+            </li>
+        <?php endif;?>
+           
+        </ol>
+
+    </div>
+    </div>
+</div>
+</div>
+<div class="limiter" style="float:right;width:190px;">
+             <label>Affiliate Name</label>
+<div class="" style="border: 2px solid #999999; margin-right:10px;float: right;height:24px;overflow: hidden;width: 75px;background-image:url('<?php echo $this->getSkinUrl("images/bgarrow.png") ?>');  background-repeat: no-repeat;background-position:right center">
+  <?php $url = Mage::getBaseUrl(); ?>
+  <input type="hidden" value="<?php echo $url?>" name="urldata" id="urldata"/>
+     <select style="width:95px;height:25px;" onchange="filteraffiliate(this.value)">
+          <option value="--SELECT--" > --Select-- </option>
+         <?php  foreach ($collection1 as $record){ 
+                    if($record['affiliate_name']!=$affname)
+                    {
+             ?>
+                      <option <?php if($affiliatename == $record['affiliate_name']){ echo 'selected=selected'; } ?> value="<?php echo $record['affiliate_name'] ?>" > <?php echo $record['affiliate_name'] ?> </option>
+   <?php } $affname=$record['affiliate_name']; }?>
+ </select>
+</div>
+</div>
+<div class="limiter" style="float:left;width:190px;">
+     <label>Filter By Date</label>
+  <div class="" style="border: 2px solid #999999; margin-right:10px;float: right;height:24px;overflow: hidden;width: 75px;background-image:url('<?php echo $this->getSkinUrl("images/bgarrow.png") ?>');  background-repeat: no-repeat;background-position:right center">
+      <?php $url = Mage::getBaseUrl(); ?>
+
+         <select style="width:95px;height:25px;" onchange="filterdate(this.value)">
+              <option value="--SELECT--" > --Select-- </option>
+             <?php  for($i=1970;$i<=date('Y');$i++){  ?>
+               <option <?php if($value == $i){ echo 'selected=selected'; } ?> value="<?php echo $i ?>" > <?php echo $i ?> </option>
+       <?php }?>
+     </select>
+  </div>
+ </div>

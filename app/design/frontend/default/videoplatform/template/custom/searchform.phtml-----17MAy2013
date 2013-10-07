@@ -1,0 +1,424 @@
+<?php  
+Mage::app()->getCacheInstance()->flush();
+$_helper = $this->helper('catalog/output');
+$expertname=$this->getRequest()->getParam('name');
+$adminmodel=Mage::getModel('admin/user')->getCollection()->getData();
+foreach($adminmodel as $admininfo)
+{
+    if($admininfo['username']==$expertname)
+    {
+       $expertemail=$admininfo['email'];
+       $expertinfo = Mage::getModel('customer/customer')->setWebsiteId(1)->loadByEmail($expertemail);
+       $expertid=$expertinfo['entity_id'];
+       break;
+    }
+}
+
+
+?>
+<div>
+    <div class="left">
+        <div class="expert_bg">
+        <?php 
+            $avatar = Mage::getModel('userprofile/avatars')->setStoreData(1)->loadByCustomerId($expertid);
+            if($avatar->getValue()!=NULL){
+            $ava_src = str_replace('index.php','',$this->getBaseUrl()).'media/userprofile/avatar/'.$expertid.'/'.$avatar->getValue();
+            }
+            else{
+               $ava_src = str_replace('index.php','',$this->getBaseUrl()).'media/userprofile/avatar/dummy/dummy.jpg';
+            }
+        ?>
+            <a href="<?php ?>" title="<?php ?>" class="product-image"><img src="<?php echo $ava_src;?>" width="265" height="180" alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" /></a>
+            <div class="expertname">
+            <?php echo $expertname; ?>
+            </div>
+        </div>
+        <div class="left_subscribe_bg">
+              <?php echo $this->getLayout()->createBlock('newsletter/subscribe')->setTemplate('newsletter/subscribe.phtml')->toHtml(); ?>
+        </div>
+    </div>     
+</div>
+    <div class="expert_vision">
+                         <div class="about_the_expert">
+                         About the Expert
+                         </div>
+                          <div class="vision_justo">
+                           Vision: <span>"Suspendisse justo ligula, malesuada ut varius sed"</span>
+                          </div>
+                          <div class="content_text">
+                              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam venenatis tristique enim
+                                 sit amet viverra. Suspendisse justo ligula, malesuada ut varius sed, mattis nec purus.
+                                 Integer congue felis id lectus egestas sit amet consequat mauris aliquet. Donec at magn
+                                 magna vitae dui fermentum facilisis sit amet ut nibh. Pellentesque habitant morbi tristi
+                                 que senectus et netus et malesuada fames ac turpis egestas. Etiam sit amet eros in urna
+                                 sagittis pharetra.</p>
+                              <br>
+                              <p>
+                                  Donec at dui libero, eu fermentum magna. Vivamus a ornare eros. Pellentesque pharetra
+                                  varius blandit. Praesent orci leo, luctus eget hendrerit et, sagittis eu lacus. In hac habit
+                                  asse platea dictumst. Vestibulum feugiat turpis at mi laoreet non consequat purus suscip
+                                  it. Cras luctus pretium consequat. 
+                              </p>
+                              <br>
+                              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam venenatis tristique enim
+                                 sit amet viverra. Suspendisse justo ligula, malesuada ut varius sed, mattis nec purus.
+                                 Integer congue felis id lectus egestas sit amet consequat mauris aliquet. Donec at magn
+                                 magna vitae dui fermentum facilisis sit amet ut nibh. Pellentesque habitant morbi tristi
+                                 que senectus et netus et malesuada fames ac turpis egestas. Etiam sit amet eros in urna
+                                 sagittis pharetra.</p>
+                          </div>
+             </div>
+  
+                <div class="recent_courses_bg">
+                     <div class="tabContainer" >
+                        <ul class="digiTabs" id="sidebar">
+                          <li id="tab5" class="selected"  onclick="tabs4();">ALL COURSES</li>
+                          <li id="tab6" onclick="tabs5();">TRAINING SCHEDULE</li>
+                          <li id="tab7" onclick="tabs6();">SUBSCRIBE MEMBER</li>
+                         </ul>
+                     </div>
+               </div>
+    <?php
+               $id=  $this->getRequest()->getParam('name');
+               $customer= Mage::getSingleton( 'customer/session' )->getCustomer();
+               $user = Mage::getModel('admin/user')->getCollection()->getData();
+               foreach($user as $userinfo)
+                  {
+                      if($userinfo['username']==$id)
+                      {
+                          break;
+                      }
+                  }
+                  
+                $custemail=$userinfo['email'];
+                $customerdata=Mage::getModel('customer/customer')->setWebsiteId(1)->loadByEmail($custemail);
+                $custid=$customerdata['entity_id'];
+                $membersubscriber=Mage::getModel('allmembers/allmembers')->getCollection()->getData();
+                foreach($membersubscriber as $memberinfo){
+                    if($memberinfo['customer_id']== $customer->getId() && $memberinfo['member_id']==$custid )
+                    {
+                        $userid=$memberinfo['customer_id'];
+                        $memberid=$memberinfo['member_id'];
+                        $status=$memberinfo['status'];
+                        $subscribeId=$memberinfo['id'];
+                     
+                        break;
+                    }
+                }
+                $resource = Mage::getSingleton('core/resource');
+                $connection= $resource->getConnection('core_read');			
+                $query="select * from tbl_brstcustomer where customer_id = $custid";
+                $result=$connection->query($query);
+                $custdata = $result->fetch($select); 
+                //echo "<pre>";print_r($custdata);die('ahah');
+                      
+    ?>
+    <script type="text/javascript">
+    function changeaction()
+    {
+       document.getElementById("merchant-form-validate").action="<?php echo $this->getUrl()."/allmembers/index/unsubscribe"  ?>";
+       document.getElementById("merchant-form-validate").submit();
+    
+    }
+</script>
+      <div id="tabContent2" class="content_imgs">
+
+<?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+<?php $collection = $this->getCollection();
+
+ $collection->getSize();?>
+<?php if($collection->getSize() != 0){ ?>
+<?php // Grid Mode ?>
+
+<?php $_collectionSize = $collection->count(); 
+     $_columnCount = $this->getColumnCount();?>
+
+     <?php 
+    	if(!$_columnCount){$_columnCount = 3;} 
+         $i=0; 
+         foreach ($collection as $_product){
+          $_product = Mage::getModel('catalog/product')->load($_product->getId());
+      if ($i++%$_columnCount==0){ ?>
+        <div class="listgrid" id="listgrid">
+        <ul class="products-grid">
+      <?php }?>
+            <li class="item<?php if(($i-1)%$_columnCount==0): ?> first<?php elseif($i%$_columnCount==0): ?> last<?php endif; ?>">
+              <?php
+                $Id= $_product->getId();
+                $_myprodsamples = Mage::getModel('downloadable/link')->getCollection()->addProductToFilter($Id);
+                $products = Mage::getModel('catalog/product')->load($Id);
+                $type=$products['type_id'];
+                $ustreamvideo=$products['ustream_video'];
+                $enddate= explode(' ',$products[end_date]);
+                $end_date=$enddate[0];
+                $productmaterial=$products['product_material'];
+            // echo "<pre>";print_r($products->getData());die('ahjsa');
+                foreach ($_myprodsamples as $_sample){
+                     $video= $_sample['sample_url'];
+                }
+                $vdata=explode("v=",$video);
+                if($vdata['1']!=NULL && $type=='downloadable')
+                {
+                  echo  '<iframe title="YouTube video player" class="youtube-player" style="margin:15px;padding-left:5px;" type="text/html" width="265" height="190" src="https://www.youtube.com/embed/'.$vdata['1'].'" frameborder="0" allowFullScreen></iframe>';
+                }
+             
+                  else{ ?>
+                <div> <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" class="product-image"><img src="<?php echo $this->helper('catalog/image')->init($_product, 'small_image') ?>" width="265" height="190" alt="<?php echo $this->stripTags($this->getImageLabel($_product, 'small_image'), null, true) ?>" />
+                             </a> 
+                   <span style="  float: right;margin-left: 235px;margin-top: -205px;position: absolute;">
+                    <?php if($productmaterial=='7') { ?>
+                        <img src="<?php echo $this->getSkinUrl('images/img_video.png')?>"/>
+                     <?php } else if($productmaterial=='8') { ?>
+                         <img src="<?php echo $this->getSkinUrl('images/img_audio.png')?>"/>
+                      <?php } else if($productmaterial=='10'){ ?>
+                            <img src="<?php echo $this->getSkinUrl('images/img_ebook.png')?>"/>
+                     <?php }else { ?>
+                            <img src="<?php echo $this->getSkinUrl('images/img_video.png')?>"/>
+                   <?php  } ?>
+                   </span>
+                </div>
+                   <?php }  ?>
+                <div> 
+                    <h2 class="product-name">
+                         <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->stripTags($_product->getName(), null, true) ?>"><?php echo $_helper->productAttribute($_product, $_product->getName(), 'name') ?></a>
+                      <div class="size">1 session: <?php echo $end_date ?></div>
+                    </h2>
+                    <div class="price-box">
+                         <span id="product-price-4" class="regular-price">
+                            <span class="price">
+                                    <?php  $curencySymbol =  Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol(); 
+                                            echo $curencySymbol.number_format($_product->getPrice(),2); ?>   
+                             </span></span>   
+                </div>
+                </div>
+                <div class="actions">
+                <?php if($_product->isSaleable()): 
+                    $base_url=Mage::getBaseUrl();
+                    ?>
+                <button type="button" title="<?php echo $this->__('Add to Cart') ?>" class="button btn-cart" onclick="setLocation('<?php echo $cart=$base_url.'checkout/cart/add?product='.$_product->getId(); ?>')"><span><span><?php echo $this->__('BUY NOW') ?></span></span></button>
+                <?php else: ?>
+                <p class="availability out-of-stock"><span><?php echo $this->__('Out of stock') ?></span></p>
+                <?php endif; ?>
+                </div>
+            </li>
+            
+        <?php if ($i%$_columnCount==0 || $i==$_collectionSize): ?>
+         </ul>
+        
+    </div>
+  
+<?php endif; ?>
+<?php }?>
+
+<?php } else { ?>
+    <p><?php echo $this->__('The collection is empty.'); ?></p>
+<?php }?>
+ </div>               
+
+  <div id="subscribemember" style="display:none;float:left;padding-top:20px;">
+      <form id="merchant-form-validate" method="post" action="<?php echo $this->getUrl()?>allmembers/index/subscribe" />
+         <input type="hidden" name="customerid" value="<?php echo $customer->getId();?>"/>
+         <input type="hidden" name="id" value="<?php echo $subscribeId;?>"/>
+         <input type="hidden" name="customeremail" value="<?php echo $customer->getEmail();?>"/>
+         <input type="hidden" name="memberid" value="<?php echo $custid;?>"/>
+         <div class="page-title">
+             <h1>Member Information</h1>
+        </div>
+        <div class="fieldset" style="margin:0px;">
+           <ul class="form-list">
+                <li class="fields">
+                    <div class="customer-name">
+                         <div class="field name-firstname" style="width: 335px;">
+                             <label class="required" for="firstname">First Name : </label>
+                                <?php echo $customerdata['firstname'] ;?>
+                         </div>
+                         <div class="field name-lastname" style="float:right;width: 335px;">
+                            <label class="required" for="lastname">Last Name : </label>
+                                     <?php echo $customerdata['lastname'] ;?>
+                         </div>
+                     </div>
+                </li>
+                
+                <li class="fields">
+                    <div class="customer-name">
+                        <div class="field name-firstname" style="width: 335px;">
+                             <label class="required" for="firstname">Email ID :</label>
+                                 <?php echo $custemail ;?>
+                        </div>
+                        <div class="field name-lastname" style="float:right;width: 335px;">
+                            <label class="required" for="lastname">Nick Name : </label>
+                                    <?php echo $custdata['nickname'] ;?>
+                        </div>
+                    </div>
+                </li>
+                
+                 <li class="fields">
+                    <div class="customer-name">
+                         <div class="field name-firstname" style="width: 335px;">
+                             <label class="required" for="firstname">Type : </label>
+                                <?php echo $custdata['type'] ;?>
+                         </div>
+                          <div class="field name-lastname" style="float:right;width: 335px;">
+                            <label class="required" for="lastname">Horse Owner : </label>
+                                    <?php echo $custdata['horse_owner'] ;?>
+                          </div>
+                    </div>
+                </li>
+                
+                 <li class="fields">
+                    <div class="customer-name">
+                         <div class="field name-firstname" style="width: 335px;">
+                             <label class="required" for="firstname">Gender : </label>
+                                <?php echo $custdata['gender'] ;?>
+                         </div>
+                        <div class="field name-lastname" style="float:right;width: 335px;">
+                            <label class="required" for="lastname">Date Of Birth : </label>
+                                    <?php echo $custdata['birthdate'] ;?>
+                         </div>
+                     </div>
+                </li>
+            </ul>
+      </div>
+    <?php 
+     $login = Mage::getSingleton( 'customer/session' )->isLoggedIn();
+     if(!$login)
+     {
+         ?>
+         <div> Please <a href="<?php echo Mage::getBaseUrl().'customer/account'?>">login</a> to subscribe member</div>
+         
+         
+         <?php
+     }
+    $login = Mage::getSingleton( 'customer/session' )->isLoggedIn(); if($login && $status==0)  {?>
+      <div class="buttons-set" style="margin:0px;padding: 8px 0 10px;">
+        <button style="background:#333333;font-size:14px;color:#FFFFFF;padding:5px;width:100px;"  class="button" title="Submit" type="submit" name="subscribe" ><span><span>Subscribe</span></span></button>
+  </div>
+    <?php }
+    else if($login && $memberid==$custid && $status==1){?>
+        <div class="buttons-set" style="margin:0px;padding: 8px 0 10px;">
+        <button style="background:#333333;font-size:14px;color:#FFFFFF;padding:5px;width:100px;" class="button"  type="button" name="unsubscribe" onclick="changeaction()"><span><span>Unsubscribe</span></span></button>
+  </div>
+ <?php   }
+?>
+</form>
+  </div>
+
+       <?php  //die('helo');  ?>
+
+<div id="training" style="display:none;">
+   
+    <?php //echo $this->getLayout()->createBlock('cms/block')->setBlockId('event-calendar')->toHtml(); ?>
+       <div class="product-shop" style="margin-top:15px;">
+             <div class="identify" style="padding-top:18px;height:415px;">
+                  <link rel="stylesheet" href="<?php echo $this->getSkinUrl().'css/events/calendar.css' ?>" type="text/css" media="screen" />
+                 <div style="background:#333333;color:#FFFFFF;font-size:14px;padding:2px;"> LIVE EVENT SCHEDULE</div>
+            <?php echo $this->getLayout()->createBlock('events/calendarEvents')->setTemplate('events/expertcalendar.phtml')->toHtml(); ?>
+                 
+                  <div style="background:#333333;color:#FFFFFF;font-size:14px;padding:2px;margin-top:15px;"> EVENT SCHEDULE </div>
+                  <div style="background: none repeat scroll 0 0 #FFFFFF;padding:10px 10px 10px 15px">
+                      <?php echo $this->getLayout()->createBlock('cms/block')->setBlockId('event-schedule')->toHtml(); ?> 
+                  </div>
+             </div>
+            <div class="" style="float:right;">
+                <div style="width:615px;background:#F0F0F0;height:287px;">
+                    <div style=" height: 30px; padding:15px 0 10px 10px;font-size:20px;">
+                    Now Broadcasting
+                    <span style="background: none repeat scroll 0% 0% rgb(51, 51, 51); color: rgb(51, 51, 51); font-size: 16px;">qwertyuiopasdfghhjklzxcvbnmqwertyuioqweer<span style="background: none repeat scroll 0% 0% rgb(51, 51, 51);color:#FFFFFF" >>>></span></span>
+                    </div>
+                    <div style="float:left;padding:5px;">
+                       <?php 
+                       $eventmodel=Mage::getModel('events/events')->getCollection()->getData(); 
+                       $today_year  =date("Y");
+                       $today_month =date("m");
+                       $today_day   =date("d");
+                       $todaytimestamp = mktime(0,0,0,date($today_month),date($today_day),date($today_year));
+                  
+                       foreach($eventmodel as $eventdata): 
+                                    $connection = Mage::getSingleton('core/resource')->getConnection('core_read');
+                                    $query="select * from events_product where eventid=".$eventdata['event_id'];
+                                    $result=$connection->query($query)->fetch();
+                                    $product=Mage::getModel('catalog/product')->load($result['product_id']);
+                                    //echo "<pre>";print_r($product['_defaultValues']);die("herer");
+                                    $expertid =$product['member_list']; 
+                                    $attr = $product->getResource()->getAttribute("member_list");
+                                    if ($attr->usesSource()): $proexpertname = $attr->getSource()->getOptionText($expertid); endif;
+                                    
+                                        $eventdate1= $eventdata['event_start_date'];
+                                        $eventdata2=explode(' ',$eventdate1);
+                                        $eventdate=$eventdata2[0];
+                                        $demo=explode('-',$eventdate);
+                                        $startyear=$demo[0];
+                                        $startmonth=$demo[1];
+                                        $startday=$demo[2]; 
+                                        $starttimestamp = mktime(0,0,0,date($startmonth),date($startday),date($startyear)) ;
+                                        
+                                        $eventenddate1= $eventdata['event_end_date'];
+                                        $eventenddata2=explode(' ',$eventenddate1);
+                                        $eventenddate=$eventenddata2[0];
+                                        $demo1=explode('-',$eventenddate);
+                                        $endyear=$demo1[0];
+                                        $endmonth=$demo1[1];
+                                        $endday=$demo1[2]; 
+                                        $endtimestamp = mktime(0,0,0,date($endmonth),date($endday),date($endyear)) ;
+                                        
+                                        $today=date('Y-m-d');
+                                        if($endtimestamp >= $todaytimestamp)
+                                        {
+                                            $startarray[$eventdata['event_id']]=$starttimestamp;
+                                            $endarray[$eventdata['event_id']]=$endtimestamp; 
+                                        }
+                                     
+                                   endforeach;
+                                   //echo "<pre>";print_r($startarray);die('hrlo');
+                                  $start = min($startarray);
+                                  $prokey = array_search($start, $startarray);
+                                 
+                                  if(array_key_exists($prokey, $endarray)){
+                                        $end= $endarray[$prokey];
+                                     }
+                                    $connection2 = Mage::getSingleton('core/resource')->getConnection('core_read');
+                                    $query2="select * from events_product where eventid=".$prokey;
+                                    $result2=$connection->query($query2)->fetch();
+                                     
+                                    $query3="select * from events where event_id=".$prokey;
+                                    $result3=$connection->query($query3)->fetch();
+                                  
+                                   if($todaytimestamp >= $start && $end >= $todaytimestamp)
+                                         {
+                                           $liveproduct=Mage::getModel('catalog/product')->load($result2['product_id']);
+                                           ?>
+                                           <iframe src="<?php echo $liveproduct['live_streaming'] ?>" width="320" height="200" scrolling="no" frameborder="0" style="border: 0px none transparent;"></iframe>
+                                           <?php
+                                            
+                                        }
+                                  
+?>
+
+
+  
+                    </div>
+                    <div style="float:right;padding:5px 10px 5px 5px;width:260px;">
+                        <div style="color: #333333;font-size: 16px;font-weight: bold;">
+                       <?php echo $liveproduct['name']; ?>
+                        </div>
+                        <div style="font-size: 12px;padding-top: 10px;">
+                            <?php echo $liveproduct->getShortDescription(); ?>
+                        </div>
+                    <div class="price-box" style="background-color: #8FD400;height: 35px;margin: 35px 0;width: 93px;">
+                           <span style=" float: left;margin-left: 18px;margin-top:8px;">
+                                  <a style="text-decoration:none;color:#333333;" href="<?php echo Mage::getBaseUrl()."event/".$result3['event_url_prefix']; ?>" title="<?php ?>" class="">
+					WATCH
+                                  </a>
+                              </span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:25px;font-family:verdana;margin-top:15px;">Upcoming Live Events</div>
+                    <?php echo $this->getLayout()->createBlock('cms/block')->setBlockId('expert-upcoming-event')->toHtml(); ?> 
+                </div>
+        </div>
+    
+</div>
+</div>
+                     

@@ -1,0 +1,493 @@
+<?php
+$_helper = $this->helper('catalog/output');
+$purl=$this->allquery();
+$prourl= $purl['join_id'];
+$prodIdss=explode(',',$purl['product_id']);  
+?>
+
+<?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+<?php 
+$collection = $this->getCollection();
+$productIds=array();
+foreach($collection as $_product)
+{
+    $productIds[]=$_product->getId();
+}
+
+?>
+<?php 
+/*
+ * RECENT PRODUCTS
+ */
+?>
+
+<?php
+$_productCollection = Mage::getResourceModel('reports/product_collection')
+                   ->addAttributeToSelect('*')
+                    ->setVisibility(array(2,3,4))                   
+                    ->setOrder('created_at', 'desc');
+$rcount=0;
+foreach ($_productCollection as $pro)
+{
+  if($rcount<6)
+      {
+        $recentproduct[]= $pro->getId();  
+        $rcount++;
+      }
+}
+
+?>
+
+<?php 
+/*
+ * POPULAR PRODUCTS
+ */
+
+$productCount=6;
+$productss = Mage::getResourceModel('reports/product_collection')
+                                                    ->addAttributeToSelect('*')     
+                                                    ->addOrderedQty()
+                                                    ->setStoreId($storeId)
+                                                    ->addStoreFilter($storeId)                  
+                                                    ->setOrder('ordered_qty', 'desc');                                                  
+$pcount=0;
+foreach ($productss as $poppro) 
+{
+  if($pcount<6)
+    {
+        $popularproduct[]= $poppro->getId();  
+        $pcount++;
+    }
+}
+?>
+
+<?php 
+/*
+ * TOP RATED PRODUCTS
+ * 
+ */
+
+$_productCollection1 = Mage::getResourceModel('reports/product_collection')
+                     ->addAttributeToSelect('*')
+                     ->setVisibility(array(2,3,4));
+
+$_productCollection1->joinField('rating_summary', 'review/review_aggregate', 'rating_summary', 'entity_pk_value=entity_id',  array('entity_type' => 1, 'store_id' => Mage::app()->getStore()->getId()), 'left');                
+$_productCollection1->setOrder('rating_summary', 'desc');
+
+$tcount=0;
+foreach ($_productCollection1 as $toppro)
+{
+      if($tcount<6)
+      {
+        $topratedproduct[]= $toppro->getId();  
+        $tcount++;
+      }
+}
+  //echo "<pre>";print_r($popularproduct);die('helo');
+?>
+
+<?php //echo $this->getToolbarHtml(); ?>
+<?php if($collection->getSize()): ?>
+<?php if($this->getMode()!='grid'): ?>
+	<!-- List Model -->
+ <script type="text/javascript">decorateList('products-list', 'none-recursive')</script>
+<?php else: ?>
+
+<?php // Grid Mode ?>
+  
+ <div style="float:left;width:1000px;">
+ <div style="float:left;width:735px;">
+    <div class="listgrid1">
+       
+             <ul class="products-grid"  id="listd" style="width:735px;">
+    <?php $_collectionSize = $collection->count() ?>
+    <?php 
+    	$_columnCount = $this->getColumnCount();
+    	if(!$_columnCount){ $_columnCount = 3; } 
+         $i=0;
+         $recentcount=0;
+         $popcount=0;
+         $topcount=0;
+         $raw=array();
+       foreach ($prodIdss as $key=>$value):
+         $free= explode('-',$value);
+     //  echo "<pre>";print_r($free);die('helo');
+          $prodid=$free[0];
+          $category = Mage::getModel('catalog/product')->load($free[0]);
+          $ProductUrl=$category->getProductUrl()."/?".$prourl;
+          $Id= $category->getId();
+          $_myprodsamples = Mage::getModel('downloadable/link')->getCollection()->addProductToFilter($Id);
+          $products = Mage::getModel('catalog/product')->load($Id);
+          $type=$products['type_id'];
+          $ustreamvideo=$products['ustream_video'];
+          $productmaterial=$products['product_material'];
+          $curencySymbol =  Mage::app()->getLocale()->currency(Mage::app()->getStore()->getCurrentCurrencyCode())->getSymbol(); 
+          foreach($_myprodsamples as $_sample){
+                 $video= $_sample['sample_url'];
+            }
+          $vdata=explode("v=",$video);
+          
+          if($productmaterial=='8' &&  $video1!=NULL):
+                                $audioclass='productname_audio';
+                                $clas='audiovideoclass';
+                            elseif($productmaterial=='7' &&  $video!=NULL ):
+                                 $audioclass='productname_video';
+                                  $clas='audiovideoclass';
+                            else:
+                                $clas='';
+                            endif;
+   ?>
+        <?php if ($i++%$_columnCount==0): ?>
+         
+        <?php endif ?>
+            <?php if (in_array($prodid, $recentproduct) && $free[1]=='R') {
+                        if($recentcount==0 ) {?>
+                            <div class="recent_courses_bg" style="margin-bottom:10px;">
+                                     <div class="recent_courses_left">
+                                        RECENT COURSES
+                                     </div>
+                            </div>
+                    <?php $recentcount++; } ?>
+                    <div class="listd">
+                    <li  style="float:left;" class="item<?php if(($i-1)%$_columnCount==0): ?> first<?php elseif($i%$_columnCount==0): ?> last<?php endif; ?>">
+                      <?php if($vdata['1']!=NULL && $type=='downloadable'&& $productmaterial=='7'): ?>
+                         <div class="videosclick3" onclick="thevid=document.getElementById('thevideo<?php echo $countdata ?>'); thevid.style.display='block';document.getElementById('viewplayer2<?php echo $countdata ?>').src = document.getElementById('viewplayer2<?php echo $countdata ?>').src.replace('autoplay=0','autoplay=1'); this.style.display='none'">
+                             <?php if($products->getImageUrl() !=NULL){ ?>
+                                  <img style="margin:15px;padding-left:5px;" src="<?php echo $this->helper('catalog/image')->init($products, 'small_image')->resize(195,180) ?>"  style="cursor:pointer" />
+                             <?php } else { ?>
+                                  <img style="margin:15px;padding-left:5px;" src="http://img.youtube.com/vi/<?php echo $vdata['1']?>/2.jpg"  width="195" height="180" style="cursor:pointer" />
+                             <?php  }  ?>
+                              <a style="left:95px;" href="javascript:void(0)" ></a>
+                          </div>
+                          <div id="thevideo<?php echo $countdata ?>" style="display:none"> 
+                                <?php   echo  '<iframe id="viewplayer2'.$countdata.'" style="margin:15px;padding-left:5px;" title="YouTube video player" class="youtube-player" type="text/html" width="195" height="180"  src="https://www.youtube.com/embed/'.$vdata['1'].'?autoplay=0" frameborder="0" allowFullScreen></iframe>'; ?>
+                          </div>
+                            
+                         <?php   elseif($productmaterial==8 && $video1!=NULL ): ?>
+                         <script type="text/javascript" src="<?php echo $this->getSkinUrl('jwplayer/jwplayer.js'); ?>"></script>
+                         <script type="text/javascript" src="<?php echo $this->getSkinUrl('jwplayer/jwplayer.html5.js'); ?>"></script>
+                         <?php 
+                            $_myprodsamples = Mage::getModel('downloadable/link')->getCollection()->addProductToFilter($Id);
+                            foreach ($_myprodsamples as $_sample): $video1= $_sample['link_url']; endforeach;
+                            ?>
+                         <div style="padding:15px !important;">
+                            <div id="myElementlist<?php echo $countdata ?>" class="jwwrap" class="listgrid" style="padding:15px;">Loading the player...</div></div>
+
+                         <script type="text/javascript">
+                                jwplayer("myElementlist<?php echo $countdata ?>").setup({
+                                    'width': '195',
+                                   'height': '180',
+                                flashplayer : '<?php echo $this->getSkinUrl('jwplayer/jwplayer.flash.swf'); ?>',
+                                file: "<?php echo $video1 ?>"
+                              });
+                        </script>
+                       
+
+                <?php   else:?>
+                             <div>
+                                <a href="<?php echo $ProductUrl ?>" title="<?php echo $this->stripTags($this->getImageLabel($products, 'small_image'), null, true) ?>" class="product-image">
+                                    <img src="<?php echo $this->helper('catalog/image')->init($products, 'small_image') ?>" width="195" height="180" alt="<?php echo $this->stripTags($this->getImageLabel($products, 'small_image'), null, true) ?>" /></a> 
+                                
+                            </div>
+                    <?php endif; ?>
+
+                       <h2 class="product-name"><a href="<?php echo $ProductUrl; ?>" target="_blank"  title="<?php echo $category->getUrl() ?>"><?php echo $category->getName() ?></a></h2>
+                    
+                     
+                             <div class="price-box">
+                                          
+                                 <span id="product-price-150" class="regular-price">
+                                     <span class="price"><?php  
+                                            echo $curencySymbol.number_format( $category->getPrice(),2);?>
+                                     </span>                                   
+                                 </span>
+                            </div>
+                        <div class="actions">
+                             <?php  ?>
+                            <?php if($products['is_salable']): ?>
+                            <button type="button" title="<?php echo $this->__('Add to Cart') ?>" class="button btn-cart" onclick="setLocation('<?php  echo $ProductUrl ?>')"><span><span><?php echo $this->__('BUY NOW') ?></span></span></button>
+                            <?php else: ?>
+                            <p class="availability out-of-stock"><span><?php echo $this->__('Out of stock') ?></span></p>
+                            <?php endif; ?>
+                            </div>
+                                
+                    
+
+                    </li>
+    </div>
+            <?php } ?>
+            
+                    
+                    
+      <?php       /**********************************************   TOP RATED COURSES  ************************************/    ?>
+                    
+                      <?php if (in_array($prodid, $topratedproduct) && $free[1]=='T') { 
+                    if($topcount==0 ) {?>
+                        <div class="recent_courses_bg" style="margin-bottom:10px;">
+                             <div class="recent_courses_left" >
+                                TOP RATED COURSES
+                             </div>
+                       </div>
+                <?php $topcount++; } ?>
+                       <div class="listd">
+                <li   style="float:left;" class="item<?php if(($i-1)%$_columnCount==0): ?> first<?php elseif($i%$_columnCount==0): ?> last<?php endif; ?>">
+                 <?php if($vdata['1']!=NULL && $type=='downloadable'&& $productmaterial=='7'): ?>
+                         <div class="videosclick3" onclick="thevid=document.getElementById('thevideo<?php echo $countdata ?>'); thevid.style.display='block';document.getElementById('viewplayer2<?php echo $countdata ?>').src = document.getElementById('viewplayer2<?php echo $countdata ?>').src.replace('autoplay=0','autoplay=1'); this.style.display='none'">
+                             <?php if($products->getImageUrl() !=NULL && $products['image']!='no_selection'){ ?>
+                                  <img style="margin:15px;padding-left:5px;" src="<?php echo $this->helper('catalog/image')->init($products, 'small_image')->resize(195,180) ?>"  style="cursor:pointer" />
+                             <?php } else { ?>
+                                  <img style="margin:15px;padding-left:5px;" src="http://img.youtube.com/vi/<?php echo $vdata['1']?>/2.jpg"  width="195" height="180" style="cursor:pointer" />
+                             <?php  }  ?>
+                              <a style="left:95px;" href="javascript:void(0)" ></a>
+                          </div>
+                          <div id="thevideo<?php echo $countdata ?>" style="display:none"> 
+                                <?php   echo  '<iframe id="viewplayer2'.$countdata.'" style="margin:15px;padding-left:5px;" title="YouTube video player" class="youtube-player" type="text/html" width="195" height="180"  src="https://www.youtube.com/embed/'.$vdata['1'].'?autoplay=0" frameborder="0" allowFullScreen></iframe>'; ?>
+                          </div>
+                            
+                         <?php   elseif($productmaterial==8 && $video1!=NULL ): ?>
+                         <script type="text/javascript" src="<?php echo $this->getSkinUrl('jwplayer/jwplayer.js'); ?>"></script>
+                         <script type="text/javascript" src="<?php echo $this->getSkinUrl('jwplayer/jwplayer.html5.js'); ?>"></script>
+                         <?php 
+                            $_myprodsamples = Mage::getModel('downloadable/link')->getCollection()->addProductToFilter($Id);
+                            foreach ($_myprodsamples as $_sample): $video= $_sample['link_url']; endforeach;
+                            ?>
+                         <div style="padding:15px !important;">
+                            <div id="myElementlist<?php echo $countdata ?>" class="jwwrap" class="listgrid" style="padding:15px;">Loading the player...</div></div>
+
+                         <script type="text/javascript">
+                                jwplayer("myElementlist<?php echo $countdata ?>").setup({
+                                    'width': '195',
+                                   'height': '180',
+                                flashplayer : '<?php echo $this->getSkinUrl('jwplayer/jwplayer.flash.swf'); ?>',
+                                file: "<?php echo $video1 ?>"
+                              });
+                        </script>
+                       
+
+                <?php   else:?>
+                              <div>
+                                <a href="<?php echo $ProductUrl ?>" title="<?php echo $this->stripTags($this->getImageLabel($products, 'small_image'), null, true) ?>" class="product-image">
+                                    <img src="<?php echo $this->helper('catalog/image')->init($products, 'small_image') ?>" width="195" height="180" alt="<?php echo $this->stripTags($this->getImageLabel($products, 'small_image'), null, true) ?>" /></a> 
+                                
+                            </div>
+                    <?php endif; ?>
+                        <h2 class="product-name"><a href="<?php echo $ProductUrl; ?>" target="_blank"  title="<?php echo $category->getUrl() ?>"><?php echo $category->getName() ?></a></h2>
+                    
+                             <div class="price-box">
+                                          
+                                 <span id="product-price-150" class="regular-price">
+                                     <span class="price">
+                                        <?php echo $curencySymbol.number_format( $category->getPrice(),2);?>
+                                     </span>                                   
+                                 </span>
+                            </div>
+                         <div class="actions">
+                             <?php  ?>
+                            <?php if($products['is_salable']): ?>
+                            <button type="button" title="<?php echo $this->__('Add to Cart') ?>" class="button btn-cart" onclick="setLocation('<?php  echo $ProductUrl ?>')"><span><span><?php echo $this->__('BUY NOW') ?></span></span></button>
+                            <?php else: ?>
+                            <p class="availability out-of-stock"><span><?php echo $this->__('Out of stock') ?></span></p>
+                            <?php endif; ?>
+                            </div>
+
+                </li>
+    </div>
+            <?php  $raw[]=$prodid; } ?>
+           
+                
+                
+                
+   <?php       /**********************************************    POPULAR COURSES COURSES  ************************************/    ?>             
+                
+                
+               <?php if (in_array($prodid, $popularproduct) && !(in_array($prodid, $raw)) && $free[1]=='P') { 
+                        if($popcount==0 ) {?>
+                             <div class="recent_courses_bg" style="margin-bottom:10px;">
+                                     <div class="recent_courses_left">
+                                        POPULAR COURSES
+                                     </div>
+                            </div>
+                     <?php $popcount++; } ?>
+                <div class="listd">
+                    <li  style="float:left;" class="item<?php if(($i-1)%$_columnCount==0): ?> first<?php elseif($i%$_columnCount==0): ?> last<?php endif; ?>">
+                       <?php if($vdata['1']!=NULL && $type=='downloadable'&& $productmaterial=='7'): ?>
+                         <div class="videosclick3" onclick="thevid=document.getElementById('thevideo<?php echo $countdata ?>'); thevid.style.display='block';document.getElementById('viewplayer2<?php echo $countdata ?>').src = document.getElementById('viewplayer2<?php echo $countdata ?>').src.replace('autoplay=0','autoplay=1'); this.style.display='none'">
+                              <?php if($products->getImageUrl() !=NULL && $products['image']!='no_selection'){ ?>
+                                  <img style="margin:15px;padding-left:5px;" src="<?php echo $this->helper('catalog/image')->init($products, 'small_image')->resize(195,180) ?>"  style="cursor:pointer" />
+                             <?php } else { ?>
+                                  <img style="margin:15px;padding-left:5px;" src="http://img.youtube.com/vi/<?php echo $vdata['1']?>/2.jpg"  width="195" height="180" style="cursor:pointer" />
+                             <?php  }  ?>
+                              <a style="left:95px;" href="javascript:void(0)" ></a>
+                          </div>
+                          <div id="thevideo<?php echo $countdata ?>" style="display:none"> 
+                                <?php   echo  '<iframe id="viewplayer2'.$countdata.'" style="margin:15px;padding-left:5px;" title="YouTube video player" class="youtube-player" type="text/html" width="195" height="180"  src="https://www.youtube.com/embed/'.$vdata['1'].'?autoplay=0" frameborder="0" allowFullScreen></iframe>'; ?>
+                          </div>
+                            
+                         <?php   elseif($productmaterial==8 && $video1!=NULL ): ?>
+                         <script type="text/javascript" src="<?php echo $this->getSkinUrl('jwplayer/jwplayer.js'); ?>"></script>
+                         <script type="text/javascript" src="<?php echo $this->getSkinUrl('jwplayer/jwplayer.html5.js'); ?>"></script>
+                         <?php 
+                            $_myprodsamples = Mage::getModel('downloadable/link')->getCollection()->addProductToFilter($Id);
+                            foreach ($_myprodsamples as $_sample): $video= $_sample['link_url']; endforeach;
+                            ?>
+                         <div style="padding:15px !important;">
+                            <div id="myElementlist<?php echo $countdata ?>" class="jwwrap" class="listgrid" style="padding:15px;">Loading the player...</div></div>
+
+                         <script type="text/javascript">
+                                jwplayer("myElementlist<?php echo $countdata ?>").setup({
+                                    'width': '195',
+                                   'height': '180',
+                                flashplayer : '<?php echo $this->getSkinUrl('jwplayer/jwplayer.flash.swf'); ?>',
+                                file: "<?php echo $video1 ?>"
+                              });
+                        </script>
+                       
+
+                <?php   else:?>
+                             <div>
+                                <a href="<?php echo $ProductUrl ?>" title="<?php echo $this->stripTags($this->getImageLabel($products, 'small_image'), null, true) ?>" class="product-image">
+                                    <img src="<?php echo $this->helper('catalog/image')->init($products, 'small_image') ?>" width="195" height="180" alt="<?php echo $this->stripTags($this->getImageLabel($products, 'small_image'), null, true) ?>" /></a> 
+                                
+                            </div>
+                    <?php endif; ?>
+                        <h2 class="product-name"><a href="<?php echo $ProductUrl; ?>" target="_blank"  title="<?php echo $category->getUrl() ?>"><?php echo $category->getName() ?></a></h2>
+                       
+                             <div class="price-box">
+                                          
+                                 <span id="product-price-150" class="regular-price">
+                                     <span class="price">
+                                        <?php echo $curencySymbol.number_format( $category->getPrice(),2);?>
+                                     </span>                                   
+                                 </span>
+                            </div>
+                            <div class="actions">
+                             <?php  ?>
+                            <?php if($products['is_salable']): ?>
+                            <button type="button" title="<?php echo $this->__('Add to Cart') ?>" class="button btn-cart" onclick="setLocation('<?php  echo $ProductUrl ?>')"><span><span><?php echo $this->__('BUY NOW') ?></span></span></button>
+                            <?php else: ?>
+                            <p class="availability out-of-stock"><span><?php echo $this->__('Out of stock') ?></span></p>
+                            <?php endif; ?>
+                            </div>
+
+                    </li>
+                </div>
+                   
+            <?php  } ?>
+            
+            
+          
+        <?php if ($i%$_columnCount==0 || $i==$_collectionSize): ?>
+        
+        <?php endif ?>
+        <?php endforeach ?>
+        <script type="text/javascript">decorateGeneric($$('ul.products-grid'), ['odd','even','first','last'])</script>
+    <?php endif; ?>
+
+<?php //echo $this->getToolbarHtml(); ?>
+<?php else: ?>
+    <p><?php echo $this->__('The collection is empty.'); ?></p>
+<?php endif ?>
+    </ul>
+
+ </div>
+ </div>
+<div style="float:right;width:230px;">
+    <div style="background:#9E0B0F;color:white;font-weight:bold;font-size:14px;padding:5px;font-family:verdana;text-align:center;border:1px solid #9E0B0F;border-radius:5px 5px 0px 0px;">
+        SEARCH
+    </div>
+    <div style="padding-top:10px;" id="header">
+           <ul class="form-list" id="list" class=".listd">
+                <li class="fields" style="">
+                      <div class="field name">
+                           <div class="input-box">
+                               <input style="width:218px;" type="text" class="input-text required-entry" title="search Name" value="" name="searchname" id="searchname"/>
+                           </div>
+                        </div>
+                 </li>
+                  <button id="searchdata" style="background:#FFFFFF;margin-bottom:5px;border:1px solid #333333;border-radius:10px;color:#333333;padding:3px;" type="button" title="<?php echo $this->__('GO') ?>" class="button btn-cart" onclick=""><span><span><?php echo $this->__('GO') ?></span></span></button>
+                           
+           </ul>
+    </div>
+    <div style="background:#9E0B0F;color:white;font-weight:bold;font-size:14px;padding:5px;font-family:verdana;text-align:center;border:1px solid #9E0B0F;border-radius:5px 5px 0px 0px;">
+        SIMILAR ITEMS
+    </div>
+    
+</div>
+     <link href="http://github.com/Kilian/sencss/raw/master/source/sen.css" rel="stylesheet" type="text/css">
+  <style>
+    body {
+      background:#fff
+      font-size:13px;
+    }
+    #wrap {
+      position:relative;
+      width:220px;
+      margin:50px auto 0;
+    }
+    #header{position:relative;line-height:1em;}
+    .filterform {
+      width:220px;
+      font-size:12px;
+      display:block;
+    }
+    .filterform input {
+      -moz-border-radius:5px;
+      border-radius:5px;
+      -webkit-border-radius:5px;
+    }
+   </style>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+  <script>
+
+(function ($) {
+  // custom css expression for a case-insensitive contains()
+  jQuery.expr[':'].Contains = function(a,i,m){
+      return (a.textContent || a.innerText || "").toUpperCase().indexOf(m[3].toUpperCase())>=0;
+  };
+
+
+  function listFilter(header, listd) { // header is any element, list is an unordered list
+    // create and add the filter form to the header
+    var form = $("<form>").attr({"class":"filterform","action":"#"}),
+        input = $("<input>").attr({"class":"filterinput","type":"text"});
+    $(form).append(input).appendTo(header);
+
+    $('#searchdata').click( function () {
+        var filter = $('.filterinput').val();
+        if(filter) {
+            
+          // this finds all links in a list that contain the input,
+          // and hide the ones not containing the input while showing the ones that do
+        
+         $(listd).find("a:not(:Contains(" + filter + "))").parent().slideUp();
+         $(listd).find("a:not(:Contains(" + filter + "))")
+         {
+             $(".price-box").css("display", "none");
+         }
+        
+-
+         $(listd).find("a:Contains(" + filter + ")").parent().slideDown();
+        } else {
+         $(listd).find("li").slideDown();
+        }
+        return false;
+      })
+    .keyup( function () {
+        // fire the above change event after every letter
+        $(this).change();
+    });
+  }
+
+
+  //ondomready
+  $(function () {
+    listFilter($("#header"), $(".listd"));
+  });
+}(jQuery));
+
+  </script>
+
+
+ </div>
+
+
